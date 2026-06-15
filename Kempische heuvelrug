@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red de Kempense Heuvelrug</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#e8f5e9;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:#2e7d32;
+}
+
+.panel{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+}
+
+.stat{
+    background:#f4f4f4;
+    padding:10px;
+    border-radius:8px;
+}
+
+.bar{
+    height:18px;
+    background:#ddd;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:5px;
+}
+
+.fill{
+    height:100%;
+    background:#4caf50;
+    width:50%;
+    transition:0.5s;
+}
+
+.buttons{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:10px;
+}
+
+button{
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:15px;
+    background:#2e7d32;
+    color:white;
+}
+
+button:hover{
+    background:#1b5e20;
+}
+
+.log{
+    height:250px;
+    overflow-y:auto;
+    background:#f7f7f7;
+    padding:10px;
+    border-radius:8px;
+}
+
+.year{
+    font-size:24px;
+    font-weight:bold;
+    color:#1565c0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🌲 Red de Kempense Heuvelrug 🌲</h1>
+
+<div class="panel">
+<p>
+Doel: maak het bos beter bestand tegen droogte. Beheer gedurende 10 jaar
+de bodem en vegetatie. Zorg voor voldoende humus, capillariteit,
+een gezonde pH en een goede bodemstructuur.
+</p>
+
+<div class="year">Jaar <span id="year">1</span>/10</div>
+</div>
+
+<div class="panel">
+
+<div class="stats">
+
+<div class="stat">
+<b>Humus</b>
+<div class="bar"><div id="humusBar" class="fill"></div></div>
+<span id="humusValue"></span>
+</div>
+
+<div class="stat">
+<b>Korrelstructuur</b>
+<div class="bar"><div id="grainBar" class="fill"></div></div>
+<span id="grainValue"></span>
+</div>
+
+<div class="stat">
+<b>Capillariteit</b>
+<div class="bar"><div id="capBar" class="fill"></div></div>
+<span id="capValue"></span>
+</div>
+
+<div class="stat">
+<b>pH</b>
+<div class="bar"><div id="phBar" class="fill"></div></div>
+<span id="phValue"></span>
+</div>
+
+<div class="stat">
+<b>Waterreserve</b>
+<div class="bar"><div id="waterBar" class="fill"></div></div>
+<span id="waterValue"></span>
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Kies een beheermaatregel</h2>
+
+<div class="buttons">
+
+<button onclick="action('loofbos')">
+🌳 Plant loofbomen
+</button>
+
+<button onclick="action('doodhout')">
+🍂 Laat dood hout en strooisel liggen
+</button>
+
+<button onclick="action('biochar')">
+🪵 Voeg biochar toe
+</button>
+
+<button onclick="action('ondergroei')">
+🌿 Stimuleer ondergroei
+</button>
+
+<button onclick="action('naaldbos')">
+🌲 Meer naaldbomen aanplanten
+</button>
+
+<button onclick="action('kalk')">
+🪨 Bekalk de bodem
+</button>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Logboek</h2>
+<div class="log" id="log"></div>
+</div>
+
+</div>
+
+<script>
+
+let state = {
+    year:1,
+    humus:25,
+    grain:40,
+    capillary:35,
+    ph:4.5,
+    water:40
+};
+
+function clamp(v,min,max){
+    return Math.max(min,Math.min(max,v));
+}
+
+function updateDisplay(){
+
+    document.getElementById("year").textContent = state.year;
+
+    document.getElementById("humusValue").textContent =
+        state.humus.toFixed(0)+"%";
+
+    document.getElementById("grainValue").textContent =
+        state.grain.toFixed(0);
+
+    document.getElementById("capValue").textContent =
+        state.capillary.toFixed(0);
+
+    document.getElementById("phValue").textContent =
+        state.ph.toFixed(1);
+
+    document.getElementById("waterValue").textContent =
+        state.water.toFixed(0);
+
+    document.getElementById("humusBar").style.width =
+        state.humus+"%";
+
+    document.getElementById("grainBar").style.width =
+        state.grain+"%";
+
+    document.getElementById("capBar").style.width =
+        state.capillary+"%";
+
+    document.getElementById("phBar").style.width =
+        ((state.ph-3)/4)*100+"%";
+
+    document.getElementById("waterBar").style.width =
+        state.water+"%";
+}
+
+function log(msg){
+    let box = document.getElementById("log");
+    box.innerHTML = "<p>"+msg+"</p>" + box.innerHTML;
+}
+
+function action(type){
+
+    switch(type){
+
+        case "loofbos":
+            state.humus += 8;
+            state.capillary += 4;
+            state.ph += 0.2;
+            log("🌳 Loofbomen verhogen de humusaanvoer en verbeteren de bodemstructuur.");
+            break;
+
+        case "doodhout":
+            state.humus += 10;
+            state.water += 4;
+            log("🍂 Organisch materiaal verhoogt de waterretentie.");
+            break;
+
+        case "biochar":
+            state.humus += 4;
+            state.capillary += 8;
+            state.water += 6;
+            log("🪵 Biochar creëert microporiën die water vasthouden.");
+            break;
+
+        case "ondergroei":
+            state.capillary += 10;
+            state.humus += 3;
+            state.water += 3;
+            log("🌿 Meer wortels verbeteren capillaire werking.");
+            break;
+
+        case "naaldbos":
+            state.humus += 2;
+            state.ph -= 0.3;
+            state.capillary -= 3;
+            log("🌲 Meer naaldbomen verzuren de bodem.");
+            break;
+
+        case "kalk":
+            state.ph += 0.6;
+            log("🪨 Bekalking verhoogt de pH.");
+            break;
+    }
+
+    simulateYear();
+}
+
+function simulateYear(){
+
+    let drought = Math.random() < 0.6;
+
+    let retention =
+        state.humus * 0.4 +
+        state.capillary * 0.3 +
+        state.grain * 0.1 +
+        ((state.ph - 4) * 10);
+
+    if(drought){
+        let loss = Math.max(5,35 - retention/4);
+        state.water -= loss;
+        log("☀️ Droogtejaar! Waterverlies: " + loss.toFixed(0));
+    }
+    else{
+        let gain = retention/8;
+        state.water += gain;
+        log("🌧️ Nat jaar! Wateraanvulling: +" + gain.toFixed(0));
+    }
+
+    if(state.ph < 4.5){
+        state.humus -= 2;
+        log("⚠️ Sterke verzuring remt bodemleven.");
+    }
+
+    state.water += state.humus * 0.05;
+
+    state.humus = clamp(state.humus,0,100);
+    state.capillary = clamp(state.capillary,0,100);
+    state.grain = clamp(state.grain,0,100);
+    state.water = clamp(state.water,0,100);
+    state.ph = clamp(state.ph,3.5,7);
+
+    state.year++;
+
+    updateDisplay();
+
+    if(state.year > 10){
+        endGame();
+    }
+}
+
+function endGame(){
+
+    let score = state.water +
+                state.humus*0.5 +
+                state.capillary*0.3;
+
+    let message = "";
+
+    if(score > 120){
+        message = "🏆 Uitstekend! Het bos is zeer droogteresistent geworden.";
+    }
+    else if(score > 90){
+        message = "🌳 Goed gedaan! Het bos is duidelijk veerkrachtiger.";
+    }
+    else if(score > 60){
+        message = "🙂 Redelijk resultaat, maar droogte blijft een risico.";
+    }
+    else{
+        message = "🔥 Het bos blijft kwetsbaar voor droogte.";
+    }
+
+    alert(
+        "Einde van het spel!\n\n" +
+        message +
+        "\n\nEindscore: " + score.toFixed(0)
+    );
+
+    document.querySelectorAll("button")
+        .forEach(b => b.disabled = true);
+}
+
+updateDisplay();
+
+log("Start van het beheer van de Kempense Heuvelrug.");
+
+</script>
+
+</body>
+</html>
